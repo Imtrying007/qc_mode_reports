@@ -14,7 +14,7 @@ This tool allows users to:
 * Generate Excel report with multiple sheets
 * Download final output
 
-The application is designed for **internal team usage** and supports **10–15 concurrent users** with lightweight processing.
+The application is designed for **internal team usage** 
 
 ---
 
