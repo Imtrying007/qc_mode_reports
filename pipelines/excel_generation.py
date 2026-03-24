@@ -21,6 +21,7 @@ def run_excel_generation():
     image_path = os.path.join(DATA_DIR, "image_wise.csv")
     summary_path = os.path.join(DATA_DIR, "summary.csv")
     notes_path = os.path.join(DATA_DIR, "notes.csv")
+    analytic_path = os.path.join(DATA_DIR, "analytic.csv")
 
     output_excel = os.path.join(DATA_DIR, "final_output.xlsx")
 
@@ -28,6 +29,20 @@ def run_excel_generation():
 
     with pd.ExcelWriter(output_excel, engine="openpyxl") as writer:
 
+        # ----------------------------------------
+        # Analytic Sheet
+        # ----------------------------------------
+        if os.path.exists(analytic_path):
+            analytic_df = pd.read_csv(analytic_path)
+            analytic_df.to_excel(writer, sheet_name="analytic", index=False)
+            print("analytic.csv added to Excel")
+            files_added += 1
+        else:
+            print("analytic.csv not found")
+
+        # ----------------------------------------
+        # Shopwise Sheet
+        # ----------------------------------------
         if os.path.exists(shop_path):
             shop_df = pd.read_csv(shop_path)
             shop_df.to_excel(writer, sheet_name="shopwise", index=False)
@@ -36,6 +51,9 @@ def run_excel_generation():
         else:
             print("shopwise.csv not found")
 
+        # ----------------------------------------
+        # Image Wise Sheet
+        # ----------------------------------------
         if os.path.exists(image_path):
             image_df = pd.read_csv(image_path)
             image_df.to_excel(writer, sheet_name="image_wise", index=False)
@@ -44,6 +62,9 @@ def run_excel_generation():
         else:
             print("image_wise.csv not found")
 
+        # ----------------------------------------
+        # Summary Sheet
+        # ----------------------------------------
         if os.path.exists(summary_path):
             summary_df = pd.read_csv(summary_path)
             summary_df.to_excel(writer, sheet_name="summary", index=False)
@@ -52,6 +73,9 @@ def run_excel_generation():
         else:
             print("summary.csv not found")
 
+        # ----------------------------------------
+        # Notes Sheet
+        # ----------------------------------------
         if os.path.exists(notes_path):
             notes_df = pd.read_csv(notes_path)
             notes_df.to_excel(writer, sheet_name="notes", index=False)
@@ -60,11 +84,16 @@ def run_excel_generation():
         else:
             print("notes.csv not found")
 
+    # ----------------------------------------
+    # Final Status
+    # ----------------------------------------
     if files_added == 0:
         print("No CSV files found. Excel not created.")
+        return None
     else:
         print("-" * 40)
         print("final_output.xlsx created in data folder")
+        return output_excel
 
 
 # ----------------------------------------
