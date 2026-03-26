@@ -32,13 +32,13 @@ def run_excel_generation():
         # ----------------------------------------
         # Analytic Sheet
         # ----------------------------------------
-        if os.path.exists(analytic_path):
-            analytic_df = pd.read_csv(analytic_path)
-            analytic_df.to_excel(writer, sheet_name="analytic", index=False)
-            print("analytic.csv added to Excel")
-            files_added += 1
-        else:
-            print("analytic.csv not found")
+        # if os.path.exists(analytic_path):
+        #     analytic_df = pd.read_csv(analytic_path)
+        #     analytic_df.to_excel(writer, sheet_name="analytic", index=False)
+        #     print("analytic.csv added to Excel")
+        #     files_added += 1
+        # else:
+        #     print("analytic.csv not found")
 
         # ----------------------------------------
         # Shopwise Sheet

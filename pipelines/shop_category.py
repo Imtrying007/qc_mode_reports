@@ -1,6 +1,12 @@
 import pandas as pd
 import numpy as np
 import os
+import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from utility.grading import assign_grade
+from utility.recommendation import assign_recommendation
 
 # -----------------------------------------
 # Paths
@@ -46,7 +52,7 @@ def run_shop_category():
     # -----------------------------------------
     # Groupby
     # -----------------------------------------
-    group_cols_shop = ['category_id', 'category_name', 'shop_id']
+    group_cols_shop = ['category_id', 'category_name', 'shop_id' ,'capture_date']
 
     shop_agg = shop_df.groupby(group_cols_shop).agg(
 
@@ -153,68 +159,60 @@ def run_shop_category():
 
     shop_agg['Ai_grade'] = ""
 
-    shop_agg.loc[not_blank & (F>0.95) & (H<0.1) & (G>0.95), 'Ai_grade'] = "A"
-    shop_agg.loc[not_blank & (F>0.95) & (H<0.1) & (G<=0.95), 'Ai_grade'] = "D"
-    shop_agg.loc[not_blank & (F>0.95) & (H>=0.1) & (H<0.3) & (G>0.95), 'Ai_grade'] = "B"
-    shop_agg.loc[not_blank & (F>0.95) & (H>=0.1) & (H<0.3) & (G<=0.95), 'Ai_grade'] = "E"
-    shop_agg.loc[not_blank & (F>0.95) & (H>=0.3) & (G>0.95), 'Ai_grade'] = "C"
-    shop_agg.loc[not_blank & (F>0.95) & (H>=0.3) & (G<=0.95), 'Ai_grade'] = "F"
-    shop_agg.loc[not_blank & (F<=0.95) & (G>0.95) & (H<0.1), 'Ai_grade'] = "B"
-    shop_agg.loc[not_blank & (F<=0.95) & (G>0.95) & (H>=0.1), 'Ai_grade'] = "C"
-    shop_agg.loc[not_blank & (F<=0.95) & (G<=0.95) & (H<0.3), 'Ai_grade'] = "D"
-    shop_agg.loc[not_blank & (F<=0.95) & (G<=0.95) & (H>=0.3), 'Ai_grade'] = "F"
-
+    shop_agg = assign_grade(shop_agg, F, G, H)
+    
     print("AI grading completed")
 
     # -----------------------------------------
-    # Recommendation
-    # -----------------------------------------
-    shop_agg['recommendation'] = ""
-
-    shop_agg.loc[not_blank & (F>0.95) & (H<0.1) & (G>0.95),
-        'recommendation'] = "Sturdy category, no recommendations"
-
-    shop_agg.loc[not_blank & (F>0.95) & (H<0.1) & (G<=0.95),
-        'recommendation'] = "Hard category, needs active interference and group addition"
-
-    shop_agg.loc[not_blank & (F>0.95) & (H>=0.1) & (H<0.3) & (G>0.95),
-        'recommendation'] = "Category is okay, recommend adding new products"
-
-    shop_agg.loc[not_blank & (F>0.95) & (H>=0.1) & (H<0.3) & (G<=0.95),
-        'recommendation'] = "Too many products need to be added as groups"
-
-    shop_agg.loc[not_blank & (F>0.95) & (H>=0.3) & (G>0.95),
-        'recommendation'] = "Category okay but many products missing"
-
-    shop_agg.loc[not_blank & (F>0.95) & (H>=0.3) & (G<=0.95),
-        'recommendation'] = "Ignored category, immediate escalation"
-
-    shop_agg.loc[not_blank & (F<=0.95) & (G>0.95) & (H<0.1),
-        'recommendation'] = "Competitor SKU dataset issue or GT category"
-
-    shop_agg.loc[not_blank & (F<=0.95) & (G>0.95) & (H>=0.1),
-        'recommendation'] = "GT category ok, MT needs attention"
-
-    shop_agg.loc[not_blank & (F<=0.95) & (G<=0.95) & (H<0.3),
-        'recommendation'] = "Hard GT category or dataset issue"
-
-    shop_agg.loc[not_blank & (F<=0.95) & (G<=0.95) & (H>=0.3),
-        'recommendation'] = "Ignored category, immediate escalation"
-
-    print("Recommendations added")
-
-    # -----------------------------------------
-    # Final Columns
+    # Final Columns removed recommendataion
     # -----------------------------------------
     final_cols_shop = [
-        'category_id','category_name','shop_id','total_image_count',
+        'category_id','category_name','capture_date','shop_id','total_image_count',
         'self_count','comp_count','others_count','sticker_count',
         'incorrect_self','incorrect_comp','incorrect_others',
         'SPI','CPI','NPD','total_count','total_incorrect','accuracy',
-        'Ai_grade','recommendation'
+        'Ai_grade'
     ]
 
     shop_summary = shop_agg[final_cols_shop]
+    # -----------------------------------------
+    # Add Overall Row
+    # -----------------------------------------
+    overall_row = {
+        'category_id': 'Overall',
+        'category_name': '',
+        'capture_date': '',
+        'shop_id': '',
+        'total_image_count': shop_summary['total_image_count'].sum(),
+        'self_count': shop_summary['self_count'].sum(),
+        'comp_count': shop_summary['comp_count'].sum(),
+        'others_count': shop_summary['others_count'].sum(),
+        'sticker_count': shop_summary['sticker_count'].sum(),
+        'incorrect_self': shop_summary['incorrect_self'].sum(),
+        'incorrect_comp': shop_summary['incorrect_comp'].sum(),
+        'incorrect_others': shop_summary['incorrect_others'].sum(),
+        'SPI': (shop_summary['self_count'].sum() - shop_summary['incorrect_self'].sum()) / shop_summary['self_count'].sum(),
+        'CPI': (shop_summary['comp_count'].sum() - shop_summary['incorrect_comp'].sum()) / shop_summary['comp_count'].sum(),
+        'NPD': shop_summary['others_count'].sum() / shop_summary['total_count'].sum(),
+        'total_count': shop_summary['total_count'].sum(),
+        'total_incorrect': shop_summary['total_incorrect'].sum(),
+        'accuracy': (shop_summary['total_count'].sum() - shop_summary['total_incorrect'].sum()) / shop_summary['total_count'].sum(),
+        'Ai_grade': ''  # will be assigned next
+    }
+
+    # Convert to DataFrame for grading
+    overall_df = pd.DataFrame([overall_row])
+
+    # Call assign_grade
+    overall_df = assign_grade(
+        overall_df,
+        F=overall_df['accuracy'],
+        G=overall_df['SPI'],
+        H=overall_df['NPD']
+    )
+
+    # Append overall row to shop summary
+    shop_summary = pd.concat([shop_summary, overall_df], ignore_index=True)
 
     # -----------------------------------------
     # Save CSV

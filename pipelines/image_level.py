@@ -1,6 +1,12 @@
 import pandas as pd
 import numpy as np
 import os
+import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from utility.grading import assign_grade
+from utility.recommendation import assign_recommendation
 
 # -----------------------------------------
 # Paths
@@ -49,6 +55,7 @@ def run_image_level():
     group_cols_img = [
         'category_id',
         'category_name',
+        'capture_date',
         'shop_id',
         'test_image_id',
         'file_path'
@@ -157,17 +164,8 @@ def run_image_level():
     not_blank = (~F.isna()) & (~G.isna()) & (~H.isna())
 
     img_agg['Ai_grade'] = ""
+    img_agg = assign_grade(img_agg, F, G, H)
 
-    img_agg.loc[not_blank & (F>0.95) & (H<0.1) & (G>0.95), 'Ai_grade'] = "A"
-    img_agg.loc[not_blank & (F>0.95) & (H<0.1) & (G<=0.95), 'Ai_grade'] = "D"
-    img_agg.loc[not_blank & (F>0.95) & (H>=0.1) & (H<0.3) & (G>0.95), 'Ai_grade'] = "B"
-    img_agg.loc[not_blank & (F>0.95) & (H>=0.1) & (H<0.3) & (G<=0.95), 'Ai_grade'] = "E"
-    img_agg.loc[not_blank & (F>0.95) & (H>=0.3) & (G>0.95), 'Ai_grade'] = "C"
-    img_agg.loc[not_blank & (F>0.95) & (H>=0.3) & (G<=0.95), 'Ai_grade'] = "F"
-    img_agg.loc[not_blank & (F<=0.95) & (G>0.95) & (H<0.1), 'Ai_grade'] = "B"
-    img_agg.loc[not_blank & (F<=0.95) & (G>0.95) & (H>=0.1), 'Ai_grade'] = "C"
-    img_agg.loc[not_blank & (F<=0.95) & (G<=0.95) & (H<0.3), 'Ai_grade'] = "D"
-    img_agg.loc[not_blank & (F<=0.95) & (G<=0.95) & (H>=0.3), 'Ai_grade'] = "F"
 
     print("AI grading completed")
 
@@ -175,7 +173,7 @@ def run_image_level():
     # Final Columns
     # -----------------------------------------
     final_cols_img = [
-        'category_id','category_name','shop_id','file_path','test_image_id',
+        'category_id','category_name','capture_date','shop_id','file_path','test_image_id',
         'self_count','comp_count','others_count','sticker_count',
         'incorrect_self','incorrect_comp','incorrect_others',
         'SPI','CPI','NPD','total_count','total_incorrect','accuracy',
