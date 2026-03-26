@@ -35,6 +35,10 @@ pipelines/
     summary.py
     notes.py
     excel_generation.py
+
+utility/
+      grading.py
+      recommendation.py
 ```
 
 ---
