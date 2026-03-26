@@ -179,8 +179,8 @@ def run_shop_category():
     # Add Overall Row
     # -----------------------------------------
     overall_row = {
-        'category_id': 'Overall',
-        'category_name': '',
+        'category_id': '',
+        'category_name': 'Overall',
         'capture_date': '',
         'shop_id': '',
         'total_image_count': shop_summary['total_image_count'].sum(),
