@@ -37,7 +37,7 @@ def run_notes():
     # -----------------------------------------
     result = (
         false_df
-        .groupby(["category_name", "qc_class_name", "class_name"])
+        .groupby(["category_id","category_name", "qc_class_name", "class_name"])
         .size()
         .reset_index(name="count")
     )
