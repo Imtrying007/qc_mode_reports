@@ -37,8 +37,9 @@ cgc_file = st.file_uploader("Upload CGC CSV File", type=["csv"])
 # Save Files
 # ----------------------------------------
 def save_file(uploaded_file, filename_prefix):
-    """Save uploaded file with a unique name."""
-    unique_name = f"{filename_prefix}_{uuid.uuid4().hex}.csv"
+    # """Save uploaded file with a unique name."""
+    # unique_name = f"{filename_prefix}_{uuid.uuid4().hex}.csv"
+    unique_name = f"{filename_prefix}.csv"
     path = os.path.join(DATA_DIR, unique_name)
     with open(path, "wb") as f:
         f.write(uploaded_file.getbuffer())
