@@ -8,24 +8,18 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utility.grading import assign_grade
 from utility.recommendation import assign_recommendation
 
-# -----------------------------------------
-# Paths
-# -----------------------------------------
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_DIR = os.path.dirname(CURRENT_DIR)
-DATA_DIR = os.path.join(BASE_DIR, "data")
 
 
 # -----------------------------------------
 # Image Level Pipeline
 # -----------------------------------------
-def run_image_level():
+def run_image_level(run_dir):
 
     print("Starting Image Level Pipeline...")
     print("-" * 40)
 
-    input_path = os.path.join(DATA_DIR, "analytic.csv")
-    output_path = os.path.join(DATA_DIR, "image_wise.csv")
+    input_path = os.path.join(run_dir, "analytic.csv")
+    output_path = os.path.join(run_dir, "image_wise.csv")
 
     # -----------------------------------------
     # Load data
@@ -194,5 +188,5 @@ def run_image_level():
 # -----------------------------------------
 # Entry Point
 # -----------------------------------------
-if __name__ == "__main__":
-    run_image_level()
+# if __name__ == "__main__":
+#     run_image_level(os.cwd())

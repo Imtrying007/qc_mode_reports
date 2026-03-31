@@ -8,24 +8,19 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utility.grading import assign_grade
 from utility.recommendation import assign_recommendation
 
-# -----------------------------------------
-# Paths
-# -----------------------------------------
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_DIR = os.path.dirname(CURRENT_DIR)
-DATA_DIR = os.path.join(BASE_DIR, "data")
+
 
 
 # -----------------------------------------
 # Shop Category Pipeline
 # -----------------------------------------
-def run_shop_category():
+def run_shop_category(run_dir):
 
     print("Starting Shop Category Pipeline...")
     print("-" * 40)
 
-    input_path = os.path.join(DATA_DIR, "analytic.csv")
-    output_path = os.path.join(DATA_DIR, "shopwise.csv")
+    input_path = os.path.join(run_dir, "analytic.csv")
+    output_path = os.path.join(run_dir, "shopwise.csv")
 
     # -----------------------------------------
     # Load data
@@ -226,5 +221,5 @@ def run_shop_category():
 # -----------------------------------------
 # Entry Point
 # -----------------------------------------
-if __name__ == "__main__":
-    run_shop_category()
+# if __name__ == "__main__":
+#     run_shop_category(os.cwd())

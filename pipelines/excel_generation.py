@@ -1,29 +1,22 @@
 import os
 import pandas as pd
 
-# ----------------------------------------
-# Paths
-# ----------------------------------------
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_DIR = os.path.dirname(CURRENT_DIR)
-DATA_DIR = os.path.join(BASE_DIR, "data")
-
 
 # ----------------------------------------
 # Excel Generation
 # ----------------------------------------
-def run_excel_generation():
+def run_excel_generation(run_dir):
 
     print("Starting Excel Generation...")
     print("-" * 40)
 
-    shop_path = os.path.join(DATA_DIR, "shopwise.csv")
-    image_path = os.path.join(DATA_DIR, "image_wise.csv")
-    summary_path = os.path.join(DATA_DIR, "summary.csv")
-    notes_path = os.path.join(DATA_DIR, "notes.csv")
-    analytic_path = os.path.join(DATA_DIR, "analytic.csv")
+    shop_path = os.path.join(run_dir, "shopwise.csv")
+    image_path = os.path.join(run_dir, "image_wise.csv")
+    summary_path = os.path.join(run_dir, "summary.csv")
+    notes_path = os.path.join(run_dir, "notes.csv")
+    analytic_path = os.path.join(run_dir, "analytic.csv")
 
-    output_excel = os.path.join(DATA_DIR, "final_output.xlsx")
+    output_excel = os.path.join(run_dir, "final_output.xlsx")
 
     files_added = 0
 

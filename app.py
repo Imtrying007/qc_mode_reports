@@ -1,14 +1,15 @@
-import streamlit as st
+# app.py
 import os
-import subprocess
-import uuid
+import streamlit as st
+from utility.session_manager import init_run_session, save_uploaded_file, get_run_dir, cleanup_run
 
-# ----------------------------------------
-# Project Paths
-# ----------------------------------------
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(BASE_DIR, "data")
-PIPELINE_DIR = os.path.join(BASE_DIR, "pipelines")
+# Import pipeline functions (make sure they accept run_dir as argument)
+from pipelines.main_file import run_main_file
+from pipelines.image_level import run_image_level
+from pipelines.shop_category import run_shop_category
+from pipelines.summary import run_summary
+from pipelines.notes import run_notes
+from pipelines.excel_generation import run_excel_generation
 
 # ----------------------------------------
 # Page Config
@@ -20,102 +21,92 @@ st.set_page_config(
 )
 
 st.title("📊 QC Transformation Pipeline")
-st.write("Upload QC Mode and CGC CSV files to run the pipeline.")
+st.write("Upload QC Mode and CGC CSV files to run the pipeline. Each user session is isolated.")
 
 # ----------------------------------------
-# Create Data Folder
+# Initialize User Session
 # ----------------------------------------
-os.makedirs(DATA_DIR, exist_ok=True)
+if "run_dir" not in st.session_state:
+    run_dir = init_run_session()
+    st.session_state["run_dir"] = run_dir
+    st.success(f"Session started. Temporary workspace created: `{run_dir}`")
+else:
+    run_dir = st.session_state["run_dir"]
+    st.info(f"Existing session workspace: `{run_dir}`")
+
+st.write("Your session workspace directory:")
+st.code(run_dir)
+
+# ----------------------------------------
+# Optional: Reset Session
+# ----------------------------------------
+if st.button("🧹 Reset Session"):
+    cleanup_run()
+    st.rerun()  # updated from experimental_rerun()
 
 # ----------------------------------------
 # File Upload
 # ----------------------------------------
+st.subheader("📂 Upload Files")
+
 qc_mode_file = st.file_uploader("Upload QC Mode CSV File", type=["csv"])
 cgc_file = st.file_uploader("Upload CGC CSV File", type=["csv"])
 
-# ----------------------------------------
-# Save Files
-# ----------------------------------------
-def save_file(uploaded_file, filename_prefix):
-    # """Save uploaded file with a unique name."""
-    # unique_name = f"{filename_prefix}_{uuid.uuid4().hex}.csv"
-    unique_name = f"{filename_prefix}.csv"
-    path = os.path.join(DATA_DIR, unique_name)
-    with open(path, "wb") as f:
-        f.write(uploaded_file.getbuffer())
-    return path
+uploaded = False
+if qc_mode_file:
+    qc_path = save_uploaded_file(qc_mode_file, "qc_mode.csv")
+    st.success(f"QC Mode CSV saved at `{qc_path}`")
+    uploaded = True
 
-# ----------------------------------------
-# Pipeline Execution Function
-# ----------------------------------------
-def run_script(script_name):
-    script_path = os.path.join(PIPELINE_DIR, script_name)
-    result = subprocess.run(
-        ["python", script_path],
-        capture_output=True,
-        text=True,
-        cwd=BASE_DIR
-    )
-    return result
+if cgc_file:
+    cgc_path = save_uploaded_file(cgc_file, "cgc.csv")
+    st.success(f"CGC CSV saved at `{cgc_path}`")
+    uploaded = True
+
+if uploaded:
+    st.info("Files are saved in your isolated session workspace. Ready to run the pipeline.")
 
 # ----------------------------------------
 # Run Pipeline
 # ----------------------------------------
-if qc_mode_file and cgc_file:
+st.subheader("🚀 Run Pipeline")
 
-    run_button = st.button("🚀 Run QC Transformation Pipeline")
+if st.button("Run QC Transformation Pipeline"):
 
-    if run_button:
-        try:
-            # Save files with unique names
-            qc_path = save_file(qc_mode_file, "qc_mode")
-            cgc_path = save_file(cgc_file, "cgc")
+    run_dir = get_run_dir()  # user's session workspace
 
-            st.success("Files saved successfully ✅")
+    try:
+        st.info("Running main_file.py...")
+        run_main_file(run_dir)
+        st.success("Main pipeline completed ✅")
 
-            # Pipeline scripts order
-            pipeline_scripts = [
-                "main_file.py",
-                "image_level.py",
-                "shop_category.py",
-                "summary.py",
-                "notes.py"
-            ]
+        st.info("Running image_level.py...")
+        run_image_level(run_dir)
+        st.success("Image level pipeline completed ✅")
 
-            st.subheader("Pipeline Execution")
-            all_success = True
+        st.info("Running shop_category.py...")
+        run_shop_category(run_dir)
+        st.success("Shop-category pipeline completed ✅")
 
-            for script in pipeline_scripts:
-                st.info(f"Running {script}...")
-                result = run_script(script)
+        st.info("Running summary.py...")
+        run_summary(run_dir)
+        st.success("Summary pipeline completed ✅")
 
-                if result.returncode != 0:
-                    st.error(f"{script} failed ❌")
-                    st.code(result.stderr)
-                    all_success = False
-                    break
-                else:
-                    st.success(f"{script} completed ✅")
-                    st.code(result.stdout)
+        st.info("Running notes.py...")
+        run_notes(run_dir)
+        st.success("Notes pipeline completed ✅")
 
-            # Run Excel Generation
-            if all_success:
-                st.info("Running excel_generation.py...")
-                result = run_script("excel_generation.py")
+        st.info("Generating final Excel file...")
+        excel_path = run_excel_generation(run_dir)
+        st.success(f"Excel generated ✅ at `{excel_path}`")
 
-                if result.returncode != 0:
-                    st.error("excel_generation.py failed ❌")
-                    st.code(result.stderr)
-                else:
-                    st.success("Excel file generated successfully ✅")
+        # Save output paths in session_state for downloads
+        st.session_state['summary_path'] = os.path.join(run_dir, "summary.csv")
+        st.session_state['notes_path'] = os.path.join(run_dir, "notes.csv")
+        st.session_state['excel_path'] = excel_path
 
-                    # Store output paths in session_state for persistent downloads
-                    st.session_state['summary_path'] = os.path.join(DATA_DIR, "summary.csv")
-                    st.session_state['notes_path'] = os.path.join(DATA_DIR, "notes.csv")
-                    st.session_state['excel_path'] = os.path.join(DATA_DIR, "final_output.xlsx")
-
-        except Exception as e:
-            st.error(f"Pipeline failed: {str(e)}")
+    except Exception as e:
+        st.error(f"Pipeline execution failed ❌: {e}")
 
 # ----------------------------------------
 # Download Section
@@ -125,23 +116,34 @@ st.subheader("⬇️ Download Files")
 if 'summary_path' in st.session_state and os.path.exists(st.session_state['summary_path']):
     with open(st.session_state['summary_path'], "rb") as f:
         st.download_button(
-            "Download summary.csv",
-            f,
-            "summary.csv"
+            label="Download summary.csv",
+            data=f,
+            file_name="summary.csv",
+            mime="text/csv"
         )
 
 if 'notes_path' in st.session_state and os.path.exists(st.session_state['notes_path']):
     with open(st.session_state['notes_path'], "rb") as f:
         st.download_button(
-            "Download notes.csv",
-            f,
-            "notes.csv"
+            label="Download notes.csv",
+            data=f,
+            file_name="notes.csv",
+            mime="text/csv"
         )
 
 if 'excel_path' in st.session_state and os.path.exists(st.session_state['excel_path']):
     with open(st.session_state['excel_path'], "rb") as f:
         st.download_button(
-            "Download final_output.xlsx",
-            f,
-            "final_output.xlsx"
+            label="Download final_output.xlsx",
+            data=f,
+            file_name="final_output.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
+
+# ----------------------------------------
+# Optional: Show current session files
+# ----------------------------------------
+st.subheader("📁 Files in Your Session")
+if run_dir and os.path.exists(run_dir):
+    for file in os.listdir(run_dir):
+        st.write(file)

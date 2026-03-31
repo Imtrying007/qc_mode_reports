@@ -15,8 +15,10 @@ env/
 
 # Data Files
 data/
+tmp_sessions/
 *.csv
 *.xlsx
+
 
 # Logs
 *.log

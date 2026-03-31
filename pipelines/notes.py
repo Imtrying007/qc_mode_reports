@@ -4,21 +4,17 @@ import os
 # -----------------------------------------
 # Paths
 # -----------------------------------------
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_DIR = os.path.dirname(CURRENT_DIR)
-DATA_DIR = os.path.join(BASE_DIR, "data")
-
 
 # -----------------------------------------
 # Notes Pipeline
 # -----------------------------------------
-def run_notes():
+def run_notes(run_dir):
 
     print("Starting Notes Pipeline...")
     print("-" * 40)
 
-    input_path = os.path.join(DATA_DIR, "analytic.csv")
-    output_path = os.path.join(DATA_DIR, "notes.csv")
+    input_path = os.path.join(run_dir, "analytic.csv")
+    output_path = os.path.join(run_dir, "notes.csv")
 
     # -----------------------------------------
     # Load data
@@ -82,5 +78,5 @@ def run_notes():
 # -----------------------------------------
 # Entry Point
 # -----------------------------------------
-if __name__ == "__main__":
-    run_notes()
+# if __name__ == "__main__":
+#     run_notes(os.cwd())

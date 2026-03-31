@@ -2,24 +2,17 @@ import pandas as pd
 import os
 
 # -----------------------------------------
-# Paths
-# -----------------------------------------
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_DIR = os.path.dirname(CURRENT_DIR)
-DATA_DIR = os.path.join(BASE_DIR, "data")
-
-
-# -----------------------------------------
 # Main Pipeline
 # -----------------------------------------
-def run_main_file():
+def run_main_file(run_dir):
 
     print("Starting Main Pipeline...")
     print("-" * 40)
 
-    qc_path = os.path.join(DATA_DIR, "qc_mode.csv")
-    cgc_path = os.path.join(DATA_DIR, "cgc.csv")
-    output_path = os.path.join(DATA_DIR, "analytic.csv")
+    # Use session-specific folder
+    qc_path = os.path.join(run_dir, "qc_mode.csv")
+    cgc_path = os.path.join(run_dir, "cgc.csv")
+    output_path = os.path.join(run_dir, "analytic.csv")
 
     # -----------------------------------------
     # Step 1: Load CSVs
@@ -105,7 +98,7 @@ def run_main_file():
 
 
 # -----------------------------------------
-# Entry Point
+# Entry Point for testing
 # -----------------------------------------
-if __name__ == "__main__":
-    run_main_file()
+# if __name__ == "__main__":
+#     run_main_file(os.cwd())
