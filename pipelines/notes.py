@@ -50,6 +50,39 @@ def run_notes(run_dir):
         result["count"] / result["total_count"]
     ).round(4)
 
+    # Adding image url with max error of that particular type
+        # -----------------------------------------
+    # Adding image url with max error of that particular type
+    # -----------------------------------------
+
+    # Count errors per image for each (category, actual, predicted)
+    file_level = (
+        false_df
+        .groupby([
+            "category_id",
+            "category_name",
+            "qc_class_name",
+            "class_name",
+            "file_path"
+        ])
+        .size()
+        .reset_index(name="case_count")
+    )
+
+    # Pick the image with maximum errors per (category, actual, predicted)
+    max_file_df = file_level.loc[
+        file_level.groupby(
+            ["category_id", "category_name", "qc_class_name", "class_name"]
+        )["case_count"].idxmax()
+    ]
+
+    # Merge into main result
+    result = result.merge(
+        max_file_df,
+        on=["category_id", "category_name", "qc_class_name", "class_name"],
+        how="left"
+    )
+    
     # rename the columns
     result = result.rename(columns={
         "qc_class_name": "actual",
